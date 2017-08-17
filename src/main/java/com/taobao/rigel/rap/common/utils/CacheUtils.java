@@ -1,4 +1,5 @@
 package com.taobao.rigel.rap.common.utils;
+
 import com.taobao.rigel.rap.project.bo.Action;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -8,10 +9,10 @@ import redis.clients.jedis.JedisPool;
 import java.io.IOException;
 
 /**
- * Created by Bosn on 14/11/28.
- * Basic cache, need weight for string length.
+ * Created by Bosn on 14/11/28. Basic cache, need weight for string length.
  */
 public class CacheUtils {
+
     private static final int DEFAULT_CACHE_EXPIRE_SECS = 600;
     private static final Logger logger = LogManager.getLogger(CacheUtils.class);
 
@@ -29,13 +30,18 @@ public class CacheUtils {
 
     private static JedisPool jedisPool;
     private static Jedis jedis;
+    private static MemoryCacheTool memoryCacheTool;
+    private final static boolean USE_MEMORY_CACHE = true;
 
-    public CacheUtils() {}
+    public CacheUtils() {
+    }
 
     private static Jedis getJedis() {
-        try {
+        try
+        {
             jedisPool = JedisFactory.getInstance().getJedisPool();
-        } catch (IOException e) {
+        } catch (IOException e)
+        {
             e.printStackTrace();
             logger.error(e.getMessage());
         }
@@ -57,15 +63,20 @@ public class CacheUtils {
     public static String getRuleCache(Action action, String pattern, boolean isMockData) {
         int actionId = action.getId();
         String requestUrl = action.getRequestUrl();
-        if (requestUrl == null) {
+        if (requestUrl == null)
+        {
             requestUrl = "";
         }
         if (pattern.contains("noCache=true") || requestUrl.contains("{")
-                || requestUrl.contains("noCache=true")) {
+                || requestUrl.contains("noCache=true"))
+        {
             return null;
         }
-        String [] cacheKey = new String[]{isMockData ? KEY_MOCK_DATA
-                 : KEY_MOCK_RULE, new Integer(actionId).toString()};
+        String[] cacheKey = new String[]
+        {
+            isMockData ? KEY_MOCK_DATA
+            : KEY_MOCK_RULE, Integer.toString(actionId)
+        };
         return get(cacheKey);
     }
 
@@ -76,51 +87,98 @@ public class CacheUtils {
      * @param result
      */
     public static void setRuleCache(int actionId, String result, boolean isMockData) {
-        String[] cacheKey = new String[]{isMockData ? KEY_MOCK_DATA : KEY_MOCK_RULE, new Integer(actionId).toString()};
+        String[] cacheKey = new String[]
+        {
+            isMockData ? KEY_MOCK_DATA : KEY_MOCK_RULE, Integer.toString(actionId)
+        };
         put(cacheKey, result);
     }
 
     public static void removeCacheByActionId(int id) {
-        String[] cacheKey1 = new String[]{KEY_MOCK_RULE, new Integer(id).toString()};
-        String[] cacheKey2 = new String[]{KEY_MOCK_DATA, new Integer(id).toString()};
-
-        getJedis();
-
-        jedis.del(StringUtils.join(cacheKey1, "|"));
-        jedis.del(StringUtils.join(cacheKey2, "|"));
-
-        returnJedis();
+        String idStr = Integer.toString(id);
+        String[] cacheKey1 = new String[]
+        {
+            KEY_MOCK_RULE, idStr
+        };
+        String[] cacheKey2 = new String[]
+        {
+            KEY_MOCK_DATA, idStr
+        };
+        if (USE_MEMORY_CACHE)
+        {
+            memoryCacheTool.del(StringUtils.join(cacheKey1, "|"));
+            memoryCacheTool.del(StringUtils.join(cacheKey2, "|"));
+        } else
+        {
+            getJedis();
+            jedis.del(StringUtils.join(cacheKey1, "|"));
+            jedis.del(StringUtils.join(cacheKey2, "|"));
+            returnJedis();
+        }
     }
 
-    public static void put(String [] keys, String value, int expireInSecs) {
-        Jedis jedis = getJedis();
+    public static void put(String[] keys, String value, int expireInSecs) {
         String cacheKey = StringUtils.join(keys, "|");
-        jedis.set(cacheKey, value);
-        if (expireInSecs > 0)
-            jedis.expire(cacheKey, expireInSecs);
-        returnJedis();
+        if (USE_MEMORY_CACHE)
+        {
+            memoryCacheTool.set(cacheKey, value, expireInSecs);
+        } else
+        {
+            Jedis jedis = getJedis();
+            jedis.set(cacheKey, value);
+            if (expireInSecs > 0)
+            {
+                jedis.expire(cacheKey, expireInSecs);
+            }
+            returnJedis();
+        }
     }
 
-    public static void put(String [] keys, String value) {
+    public static void put(String[] keys, String value) {
         put(keys, value, DEFAULT_CACHE_EXPIRE_SECS);
     }
 
-    public static String get(String []keys) {
-
-        String cache =  getJedis().get(StringUtils.join(keys, "|"));
-        returnJedis();
-        return cache;
+    public static String get(String[] keys) {
+        String cacheKey = StringUtils.join(keys, "|");
+        if (USE_MEMORY_CACHE)
+        {
+            return memoryCacheTool.get(cacheKey);
+        } else
+        {
+            String cache = getJedis().get(cacheKey);
+            returnJedis();
+            return cache;
+        }
     }
 
     public static void del(String[] keys) {
         String cacheKey = StringUtils.join(keys, "|");
-        getJedis().del(cacheKey);
-        returnJedis();
+        if (USE_MEMORY_CACHE)
+        {
+            memoryCacheTool.del(cacheKey);
+        } else
+        {
+            getJedis().del(cacheKey);
+            returnJedis();
+        }
     }
 
     public static void init() {
-        getJedis();
-        jedis.flushAll();
-        returnJedis();
+        System.out.println("CacheUtils init");
+        if (USE_MEMORY_CACHE)
+        {
+            if (memoryCacheTool == null)
+            {
+                memoryCacheTool = new MemoryCacheTool();
+            } else
+            {
+                memoryCacheTool.flushAll();
+            }
+        } else
+        {
+            getJedis();
+            jedis.flushAll();
+            returnJedis();
+        }
     }
 }
