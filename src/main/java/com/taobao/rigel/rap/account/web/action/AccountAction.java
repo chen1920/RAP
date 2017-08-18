@@ -12,7 +12,6 @@ import com.taobao.rigel.rap.common.utils.StringUtils;
 import com.taobao.rigel.rap.common.utils.SystemVisitorLog;
 import com.taobao.rigel.rap.organization.bo.Corporation;
 import com.taobao.rigel.rap.organization.service.OrganizationMgr;
-import sun.misc.Cache;
 
 import javax.mail.internet.AddressException;
 import java.util.*;
@@ -42,14 +41,14 @@ public class AccountAction extends ActionBase {
     public String kaptcha;
 
     public User getUser() {
-        return user;
+        return mUser;
     }
 
     public void setUser(User user) {
-        this.user = user;
+        this.mUser = user;
     }
 
-    private User user;
+    private User mUser;
 
     public OrganizationMgr getOrganizationMgr() {
         return organizationMgr;
@@ -106,7 +105,7 @@ public class AccountAction extends ActionBase {
             return LOGIN;
         }
 
-        String[] cacheKey = new String[]{CacheUtils.KEY_NOTIFICATION, new Integer(getCurUserId()).toString()};
+        String[] cacheKey = new String[]{CacheUtils.KEY_NOTIFICATION, Integer.toString(getCurUserId())};
 
         String cache = CacheUtils.get(cacheKey);
         if (cache != null) {
@@ -152,7 +151,7 @@ public class AccountAction extends ActionBase {
             return LOGIN;
         }
         getAccountMgr().readNotificationList(getCurUserId());
-        String[] cacheKey = new String[]{CacheUtils.KEY_NOTIFICATION, new Integer(getCurUserId()).toString()};
+        String[] cacheKey = new String[]{CacheUtils.KEY_NOTIFICATION, Integer.toString(getCurUserId())};
         CacheUtils.del(cacheKey);
         return SUCCESS;
     }
@@ -392,7 +391,7 @@ public class AccountAction extends ActionBase {
             setRelativeReturnUrl("/account/myAccount.action");
             return LOGIN;
         }
-        user = getAccountMgr().getUser(getCurUserId());
+        mUser = getAccountMgr().getUser(getCurUserId());
         return SUCCESS;
     }
 
@@ -420,7 +419,7 @@ public class AccountAction extends ActionBase {
             setRelativeReturnUrl("/account/updateProfile.do");
             return LOGIN;
         }
-        user = getAccountMgr().getUser(getCurUserId());
+        mUser = getAccountMgr().getUser(getCurUserId());
 
         setIsEditMode(true);
         return SUCCESS;
@@ -453,7 +452,7 @@ public class AccountAction extends ActionBase {
             setIsEditMode(true);
             setErrMsg("旧密码输入错误");
         } else {
-            user = getAccountMgr().getUser(getCurUserId()); // #592
+            mUser = getAccountMgr().getUser(getCurUserId()); // #592
             setIsOpSuccess(true);
         }
 

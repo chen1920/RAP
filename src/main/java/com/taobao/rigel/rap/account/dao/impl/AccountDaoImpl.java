@@ -14,6 +14,7 @@ import java.util.*;
 
 public class AccountDaoImpl extends HibernateDaoSupport implements AccountDao {
 
+    @Override
     public boolean validate(String account, String password) {
         try {
             User user = (User) currentSession()
@@ -24,12 +25,14 @@ public class AccountDaoImpl extends HibernateDaoSupport implements AccountDao {
         }
     }
 
+    @Override
     public int getUsertNum() {
         String sql = "SELECT COUNT(*) FROM tb_user";
         Query query = currentSession().createSQLQuery(sql);
         return Integer.parseInt(query.uniqueResult().toString());
     }
 
+    @Override
     public boolean addUser(User user) {
         user.setLastLoginDate(new Date());
         user.setCreateDate(new Date());
@@ -38,6 +41,7 @@ public class AccountDaoImpl extends HibernateDaoSupport implements AccountDao {
         return true;
     }
 
+    @Override
     public boolean changePassword(String account, String oldPassword,
                                   String newPassword) {
         Session session = currentSession();
@@ -59,6 +63,7 @@ public class AccountDaoImpl extends HibernateDaoSupport implements AccountDao {
      * @param account
      * @return return -1 if the user doesn't exist, otherwise return id of user
      */
+    @Override
     public int getUserId(String account) {
         Query q = currentSession()
                 .createQuery("from User where account = :account");
@@ -68,6 +73,7 @@ public class AccountDaoImpl extends HibernateDaoSupport implements AccountDao {
         return user == null ? -1 : user.getId();
     }
 
+    @Override
     public User getUserByName(String name) {
         Query q = currentSession().createQuery("from User where name = :name");
         q.setString("name", name);
@@ -75,6 +81,7 @@ public class AccountDaoImpl extends HibernateDaoSupport implements AccountDao {
         return user;
     }
 
+    @Override
     public User getUser(int userId) {
         User user = currentSession().get(User.class, userId);
         return user;
@@ -94,18 +101,21 @@ public class AccountDaoImpl extends HibernateDaoSupport implements AccountDao {
         return roleSet;
     }
 
+    @Override
     public User getUser(String account) {
         return getUser(getUserId(account));
     }
 
+    @Override
     public void changeProfile(int userId, String profileProperty,
                               String profileValue) {
         User user = (User) currentSession().load(User.class, userId);
         if (profileProperty.equals("isHintEnabled")) {
-            user.setIsHintEnabled(profileValue.equals("true") ? true : false);
+            user.setIsHintEnabled(profileValue.equals("true"));
         }
     }
 
+    @Override
     public boolean updateProfile(int userId, String name, String email,
                                  String password, String newPassword) {
         User user = (User) currentSession().load(User.class, userId);
@@ -127,10 +137,12 @@ public class AccountDaoImpl extends HibernateDaoSupport implements AccountDao {
         return true;
     }
 
+    @Override
     public void updateUser(User user) {
         currentSession().update(user);
     }
 
+    @Override
     public List<Integer> getUserIdList(int teamId) {
         String sql = "SELECT user_id FROM tb_corporation_and_user WHERE corporation_id = :teamId";
         Query query = currentSession().createSQLQuery(sql);
@@ -138,10 +150,12 @@ public class AccountDaoImpl extends HibernateDaoSupport implements AccountDao {
         return query.list();
     }
 
+    @Override
     public List<User> getUserList() {
         return currentSession().createQuery("from User").list();
     }
 
+    @Override
     public void _changePassword(String account, String password) {
         Session session = currentSession();
         User user = (User) session.load(User.class, getUserId(account));
@@ -152,6 +166,7 @@ public class AccountDaoImpl extends HibernateDaoSupport implements AccountDao {
 
     }
 
+    @Override
     public Map<String, String> getUserSettings(int userId) {
         String sql = "SELECT `key`, `value` FROM tb_user_settings WHERE user_id = :userId";
         Query query = currentSession().createSQLQuery(sql);
@@ -168,6 +183,7 @@ public class AccountDaoImpl extends HibernateDaoSupport implements AccountDao {
     }
 
 
+    @Override
     public String getUserSetting(int userId, String key) {
         String sql = "SELECT `value` FROM tb_user_settings WHERE user_id = :userId AND `key` = :key";
         Query query = currentSession().createSQLQuery(sql);
@@ -182,6 +198,7 @@ public class AccountDaoImpl extends HibernateDaoSupport implements AccountDao {
     }
 
 
+    @Override
     public void updateUserSetting(int userId, String key, String value) {
         if (getUserSetting(userId, key) == null) {
             addUserSetting(userId, key, value);
@@ -206,6 +223,7 @@ public class AccountDaoImpl extends HibernateDaoSupport implements AccountDao {
     }
 
 
+    @Override
     public List<Notification> getNotificationList(int userId) {
         String hql = "from Notification n where n.user.id = :userId order by n.createTime desc";
         Query query = currentSession().createQuery(hql).setInteger("userId", userId);
@@ -213,6 +231,7 @@ public class AccountDaoImpl extends HibernateDaoSupport implements AccountDao {
     }
 
 
+    @Override
     public List<Notification> getUnreadNotificationList(int userId) {
         String hql = "from Notification n where n.user.id = :userId and read = false order by n.createTime desc";
         Query query = currentSession().createQuery(hql).setInteger("userId", userId);
@@ -220,28 +239,33 @@ public class AccountDaoImpl extends HibernateDaoSupport implements AccountDao {
     }
 
 
+    @Override
     public void clearNotificationList(int userId) {
         String hql = "delete Notification where user.id = :userId";
         currentSession().createQuery(hql).setInteger("userId", userId).executeUpdate();
     }
 
 
+    @Override
     public void addNotification(Notification notification) {
         currentSession().save(notification);
     }
 
 
+    @Override
     public void readNotification(int id) {
         String hql = "update Notification set read = 1 where id = :id";
         currentSession().createQuery(hql).setInteger("id", id).executeUpdate();
     }
 
 
+    @Override
     public void readNotificationList(int userId) {
         String hql = "update Notification set read = 1 where user.id = :userId";
         currentSession().createQuery(hql).setInteger("userId", userId).executeUpdate();
     }
 
+    @Override
     public boolean notificationExists(Notification notification) {
         String hql = "from Notification where user.id = :userId and typeId = :typeId and param1 = :param1 and read = false";
         Session session = currentSession();

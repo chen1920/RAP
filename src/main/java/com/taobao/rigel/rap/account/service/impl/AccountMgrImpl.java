@@ -5,11 +5,9 @@ import com.taobao.rigel.rap.account.bo.User;
 import com.taobao.rigel.rap.account.dao.AccountDao;
 import com.taobao.rigel.rap.account.service.AccountMgr;
 import com.taobao.rigel.rap.common.config.PRIVATE_CONFIG;
-import com.taobao.rigel.rap.common.utils.CacheUtils;
 import com.taobao.rigel.rap.common.utils.StringUtils;
 import com.taobao.rigel.rap.organization.bo.Corporation;
 import com.taobao.rigel.rap.organization.service.OrganizationMgr;
-import com.taobao.rigel.rap.project.bo.Project;
 import com.taobao.rigel.rap.project.service.ProjectMgr;
 
 import java.util.ArrayList;
@@ -48,6 +46,7 @@ public class AccountMgrImpl implements AccountMgr {
     }
 
 
+    @Override
     public boolean validate(String account, String password) {
         if (password == null || password.isEmpty()) {
             return false;
@@ -68,6 +67,7 @@ public class AccountMgrImpl implements AccountMgr {
     }
 
 
+    @Override
     public boolean addUser(User user) {
         String ps = user.getPassword();
         if (ps == null)
@@ -80,6 +80,7 @@ public class AccountMgrImpl implements AccountMgr {
     }
 
 
+    @Override
     public boolean changePassword(String account, String oldPassword,
                                   String newPassword) {
         if (oldPassword == null || newPassword == null)
@@ -90,21 +91,25 @@ public class AccountMgrImpl implements AccountMgr {
     }
 
 
+    @Override
     public User getUser(int userId) {
         return accountDao.getUser(userId);
     }
 
 
+    @Override
     public User getUser(String account) {
         return accountDao.getUser(account);
     }
 
 
+    @Override
     public int getUserId(String account) {
         return accountDao.getUserId(account);
     }
 
 
+    @Override
     public void changeProfile(int userId, String profileProperty,
                               String profileValue) {
         accountDao.changeProfile(userId, profileProperty, profileValue);
@@ -112,6 +117,7 @@ public class AccountMgrImpl implements AccountMgr {
     }
 
 
+    @Override
     public boolean updateProfile(int userId, String name, String email,
                                  String password, String newPassword) {
         if (password != null && !password.isEmpty() && newPassword != null && !newPassword.isEmpty()) {
@@ -126,11 +132,13 @@ public class AccountMgrImpl implements AccountMgr {
     }
 
 
+    @Override
     public List<User> getUserList() {
         return accountDao.getUserList();
     }
 
 
+    @Override
     public List<User> getUserList(int teamId) {
 
         List<Integer> userIdList = accountDao.getUserIdList(teamId);
@@ -146,51 +154,61 @@ public class AccountMgrImpl implements AccountMgr {
     }
 
 
+    @Override
     public void _updatePassword(String account, String password) {
         accountDao._changePassword(account, password);
     }
 
 
+    @Override
     public List<Corporation> getCorporationList() {
         return organizationMgr.getCorporationList();
     }
 
 
+    @Override
     public List<Corporation> getCorporationListWithPager(int userId, int pageNum, int pageSize) {
         return organizationMgr.getCorporationListWithPager(userId, pageNum, pageSize, null);
     }
 
 
+    @Override
     public User getUserByName(String name) {
         return accountDao.getUserByName(name);
     }
 
 
+    @Override
     public Map<String, String> getUserSettings(int userId) {
         return accountDao.getUserSettings(userId);
     }
 
 
+    @Override
     public String getUserSetting(int userId, String key) {
         return accountDao.getUserSetting(userId, key);
     }
 
 
+    @Override
     public void updateUserSetting(int userId, String key, String value) {
         accountDao.updateUserSetting(userId, key, value);
     }
 
 
+    @Override
     public List<Notification> getNotificationList(int userId) {
         return accountDao.getNotificationList(userId);
     }
 
 
+    @Override
     public void clearNotificationList(int userId) {
         accountDao.clearNotificationList(userId);
     }
 
 
+    @Override
     public void addNotification(Notification notification) {
         notification.setCreateTime(new Date());
         notification.setRead(false);
@@ -201,30 +219,36 @@ public class AccountMgrImpl implements AccountMgr {
     }
 
 
+    @Override
     public void readNotification(int id) {
         accountDao.readNotification(id);
     }
 
 
+    @Override
     public void readNotificationList(int userId) {
         accountDao.readNotificationList(userId);
     }
 
 
+    @Override
     public List<Notification> getUnreadNotificationList(int curUserId) {
         return accountDao.getUnreadNotificationList(curUserId);
     }
 
 
+    @Override
     public int getUserNum() {
         return accountDao.getUsertNum();
     }
 
+    @Override
     public void updateUser(User user) {
         accountDao.updateUser(user);
     }
 
 
+    @Override
     public String validatePasswordFormat(String password) {
         if (password == null || password.trim().isEmpty()) {
             return "密码不能为空";

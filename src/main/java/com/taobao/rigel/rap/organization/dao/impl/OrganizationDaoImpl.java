@@ -19,6 +19,7 @@ public class OrganizationDaoImpl extends HibernateDaoSupport implements
 
     private AccountDao accountDao;
     private ProjectDao projectDao;
+    private final static boolean SQLITE = true;
 
     public AccountDao getAccountDao() {
         return accountDao;
@@ -59,46 +60,43 @@ public class OrganizationDaoImpl extends HibernateDaoSupport implements
                 .setInteger("id", corpId).list();
     }
 
-
     public int addGroup(Group group) {
         Object s = currentSession().save(group);
         return (Integer) s;
     }
-
 
     public int addProductionLine(ProductionLine productionLine) {
         Object s = currentSession().save(productionLine);
         return (Integer) s;
     }
 
-
     public void removeGroup(int groupId) {
         Session session = currentSession();
         Object group = session.get(Group.class, groupId);
-        if (group != null) {
+        if (group != null)
+        {
             session.delete((Group) group);
         }
     }
-
 
     public void removeProductionLine(int productionLineId) {
         Session session = currentSession();
         Object productionLine = session.get(ProductionLine.class,
                 productionLineId);
-        if (productionLine != null) {
+        if (productionLine != null)
+        {
             session.delete((ProductionLine) productionLine);
         }
     }
 
-
     public void updateGroup(Group group) {
         Group g = getGroup(group.getId());
-        if (g != null) {
+        if (g != null)
+        {
             g.setName(group.getName());
             currentSession().update(g);
         }
     }
-
 
     public void updateProductionLine(ProductionLine line) {
         ProductionLine p = getProductionLine(line.getId());
@@ -106,16 +104,13 @@ public class OrganizationDaoImpl extends HibernateDaoSupport implements
         currentSession().update(p);
     }
 
-
     public Group getGroup(int id) {
         return (Group) currentSession().get(Group.class, id);
     }
 
-
     public ProductionLine getProductionLine(int id) {
         return (ProductionLine) currentSession().get(ProductionLine.class, id);
     }
-
 
     public void updateCountersInProductionLine(int productionLineId) {
         StringBuilder sql = new StringBuilder();
@@ -134,21 +129,21 @@ public class OrganizationDaoImpl extends HibernateDaoSupport implements
         query.executeUpdate();
     }
 
-
     public List<User> getUserLisOfCorp(int corpId) {
         Query query = currentSession().createSQLQuery("SELECT user_id FROM tb_corporation_and_user WHERE corporation_id = :corpId");
         query.setInteger("corpId", corpId);
         List<Integer> list = query.list();
         List<User> resultList = new ArrayList<User>();
-        for (Integer id : list) {
+        for (Integer id : list)
+        {
             User user = accountDao.getUser(id);
-            if (user != null) {
+            if (user != null)
+            {
                 resultList.add(user);
             }
         }
         return resultList;
     }
-
 
     public void addUserToCorp(int corpId, int userId, int roleId) {
         Query query = currentSession().createSQLQuery("INSERT INTO tb_corporation_and_user (corporation_id, user_id, role_id) VALUES (:corpId, :userId, :roleId)");
@@ -158,7 +153,6 @@ public class OrganizationDaoImpl extends HibernateDaoSupport implements
         query.executeUpdate();
     }
 
-
     public boolean isUserInCorp(int userId, int corpId) {
         Query query = currentSession().createSQLQuery("SELECT COUNT(*) FROM tb_corporation_and_user WHERE user_id = :userId AND corporation_id = :corpId");
         query.setInteger("userId", userId).setInteger("corpId", corpId);
@@ -166,17 +160,16 @@ public class OrganizationDaoImpl extends HibernateDaoSupport implements
         return num > 0;
     }
 
-
     public int getUserRoleInCorp(int userId, int corpId) {
         Query query = currentSession().createSQLQuery("SELECT role_id FROM tb_corporation_and_user WHERE user_id = :userId AND corporation_id = :corpId");
         query.setInteger("userId", userId).setInteger("corpId", corpId);
         Object result = query.uniqueResult();
-        if (result == null) {
+        if (result == null)
+        {
             return -1;
         }
         return Integer.parseInt(result.toString());
     }
-
 
     public void setUserRoleInCorp(int userId, int corpId, int roleId) {
         Query query = currentSession().createSQLQuery("UPDATE tb_corporation_and_user SET role_id = :roleId WHERE user_id = :userId AND corporation_id = :corpId");
@@ -186,45 +179,46 @@ public class OrganizationDaoImpl extends HibernateDaoSupport implements
         query.executeUpdate();
     }
 
-
     public List<Corporation> getCorporationListWithPager(int pageNum, int pageSize, String keyword) {
         boolean isSearch = keyword != null && !keyword.trim().isEmpty();
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT c.id ")
-                .append("FROM tb_corporation c "+(isSearch ? " WHERE name LIKE CONCAT('%', :keyword, '%')" : ""))
+                .append("FROM tb_corporation c " + (isSearch ? " WHERE name LIKE CONCAT('%', :keyword, '%')" : ""))
                 .append("LIMIT :startIndex, :pageSize ");
 
         Query query = currentSession().createSQLQuery(sql.toString());
         query.setInteger("startIndex", (pageNum - 1) * pageSize);
         query.setInteger("pageSize", pageSize);
-        if (isSearch) {
+        if (isSearch)
+        {
             query.setString("keyword", keyword);
         }
         List<Integer> list = (List<Integer>) query.list();
         List<Corporation> resultList = new ArrayList<Corporation>();
-        for (Integer id : list) {
+        for (Integer id : list)
+        {
             Corporation row = getCorporation(id);
             resultList.add(row);
         }
         return resultList;
     }
 
-
     public int getCorporationListWithPagerNum(String keyword) {
         boolean isSearch = keyword != null && !keyword.trim().isEmpty();
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT COUNT(*) ")
-                .append("FROM tb_corporation c " +(isSearch ? " WHERE name LIKE CONCAT('%', :keyword, '%')" : ""));
+                .append("FROM tb_corporation c " + (isSearch ? " WHERE name LIKE CONCAT('%', :keyword, '%')" : ""));
 
         Query query = currentSession().createSQLQuery(sql.toString());
-        if (isSearch) {
+        if (isSearch)
+        {
             query.setString("keyword", keyword);
         }
 
         return Integer.parseInt(query.uniqueResult().toString());
     }
 
-
+    @Override
     public List<Corporation> getCorporationListWithPager(int userId, int pageNum, int pageSize, String keyword) {
         boolean isSearch = keyword != null && !keyword.trim().isEmpty();
         StringBuilder sql = new StringBuilder();
@@ -244,19 +238,20 @@ public class OrganizationDaoImpl extends HibernateDaoSupport implements
         query.setInteger("userId", userId);
         query.setInteger("startIndex", (pageNum - 1) * pageSize);
         query.setInteger("pageSize", pageSize);
-        if (isSearch) {
+        if (isSearch)
+        {
             query.setString("keyword", keyword);
         }
 
         List<Integer> list = query.list();
         List<Corporation> resultList = new ArrayList<Corporation>();
-        for (int id : list) {
+        for (int id : list)
+        {
             Corporation row = getCorporation(id);
             resultList.add(row);
         }
         return resultList;
     }
-
 
     public int getCorporationListWithPagerNum(int userId, String keyword) {
         boolean isSearch = keyword != null && !keyword.trim().isEmpty();
@@ -274,13 +269,14 @@ public class OrganizationDaoImpl extends HibernateDaoSupport implements
 
         Query query = currentSession().createSQLQuery(sql.toString());
         query.setInteger("userId", userId);
-        if (isSearch) {
+        if (isSearch)
+        {
             query.setString("keyword", keyword);
         }
         return Integer.parseInt(query.uniqueResult().toString());
     }
 
-
+    @Override
     public int addCorporation(Corporation c) {
         Session session = currentSession();
         Query query = session.createSQLQuery("INSERT INTO tb_corporation (`name`, logo_url, user_id, access_type, `desc`) VALUES (:name, :logoUrl, :userId, :accessType, :desc)");
@@ -291,10 +287,10 @@ public class OrganizationDaoImpl extends HibernateDaoSupport implements
         query.setString("desc", c.getDesc());
         query.executeUpdate();
 
-        return Integer.parseInt(session.createSQLQuery("SELECT LAST_INSERT_ID()").uniqueResult().toString());
+        return Integer.parseInt(session.createSQLQuery(SQLITE ? "SELECT last_insert_rowid()" : "SELECT LAST_INSERT_ID()").uniqueResult().toString());
     }
 
-
+    @Override
     public int getMemberNumOfCorporation(int corpId) {
         String sql = "SELECT COUNT(DISTINCT cu.user_id) FROM tb_corporation c JOIN tb_corporation_and_user cu ON cu.corporation_id = c.id WHERE c.id = :corpId";
 
@@ -305,11 +301,11 @@ public class OrganizationDaoImpl extends HibernateDaoSupport implements
     }
 
     public int getProjectNumOfCorporation(int corpId) {
-        String sql = "SELECT COUNT(p.id) \n" +
-                "FROM tb_project p \n" +
-                "JOIN tb_group g ON g.id = p.group_id \n" +
-                "JOIN tb_production_line pl ON p.id = g.production_line_id\n" +
-                "WHERE pl.corporation_id = :corpId";
+        String sql = "SELECT COUNT(p.id) \n"
+                + "FROM tb_project p \n"
+                + "JOIN tb_group g ON g.id = p.group_id \n"
+                + "JOIN tb_production_line pl ON p.id = g.production_line_id\n"
+                + "WHERE pl.corporation_id = :corpId";
         Query query = currentSession().createSQLQuery(sql);
         query.setInteger("corpId", corpId);
 
@@ -317,15 +313,15 @@ public class OrganizationDaoImpl extends HibernateDaoSupport implements
     }
 
     public int getActionNumOfCorporation(int corpId) {
-        String sql = "SELECT COUNT(a.id) \n" +
-                "FROM tb_action a\n" +
-                "JOIN tb_action_and_page ap ON ap.action_id = a.id\n" +
-                "JOIN tb_page p ON p.id = ap.page_id\n" +
-                "JOIN tb_module m ON m.id = p.module_id\n" +
-                "JOIN tb_project pr ON pr.id = m.project_id\n" +
-                "JOIN tb_group g ON g.id = pr.group_id \n" +
-                "JOIN tb_production_line pl ON pl.id = g.production_line_id\n" +
-                "WHERE pl.corporation_id = :corpId";
+        String sql = "SELECT COUNT(a.id) \n"
+                + "FROM tb_action a\n"
+                + "JOIN tb_action_and_page ap ON ap.action_id = a.id\n"
+                + "JOIN tb_page p ON p.id = ap.page_id\n"
+                + "JOIN tb_module m ON m.id = p.module_id\n"
+                + "JOIN tb_project pr ON pr.id = m.project_id\n"
+                + "JOIN tb_group g ON g.id = pr.group_id \n"
+                + "JOIN tb_production_line pl ON pl.id = g.production_line_id\n"
+                + "WHERE pl.corporation_id = :corpId";
         Query query = currentSession().createSQLQuery(sql);
         query.setInteger("corpId", corpId);
 
@@ -348,7 +344,6 @@ public class OrganizationDaoImpl extends HibernateDaoSupport implements
         return idList;
     }
 
-
     public void deleteMembershipFromCorp(int curUserId, int userId, int corpId) {
         Query query = currentSession().createSQLQuery("DELETE FROM tb_corporation_and_user WHERE corporation_id = :corpId AND user_id = :userId");
         query.setInteger("userId", userId);
@@ -357,11 +352,11 @@ public class OrganizationDaoImpl extends HibernateDaoSupport implements
 
         List<Integer> idList = getProjectIdsFromCorporation(userId, corpId);
 
-        for (Integer projectId : idList) {
+        for (Integer projectId : idList)
+        {
             projectDao.updateCreatorId(projectId, curUserId);
         }
     }
-
 
     public void updateCorporation(Corporation c) {
         Query query = currentSession().createSQLQuery("UPDATE tb_corporation SET `name`=:name, `desc`=:desc, access_type=:accessType WHERE id=:id");
@@ -371,7 +366,6 @@ public class OrganizationDaoImpl extends HibernateDaoSupport implements
         query.setInteger("id", c.getId());
         query.executeUpdate();
     }
-
 
     public int getTeamIdByProjectId(int id) {
         StringBuilder sql = new StringBuilder();
@@ -386,13 +380,14 @@ public class OrganizationDaoImpl extends HibernateDaoSupport implements
         Query query = currentSession().createSQLQuery(sql.toString());
         query.setInteger("id", id);
         Object resultObj = query.uniqueResult();
-        if (resultObj == null) {
+        if (resultObj == null)
+        {
             return 0;
-        } else {
+        } else
+        {
             return (Integer) resultObj;
         }
     }
-
 
     public Corporation getCorporation(int id) {
         return currentSession().get(Corporation.class, id);
